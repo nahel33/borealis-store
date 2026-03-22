@@ -1,10 +1,3 @@
-/* 
-  =========================================================
-   BOREALIS STORE V2.5 - CLOUD BRIDGE ARCHITECTURE
-  =========================================================
-*/
-
-// --- CONFIGURACIÓN CLOUD (SUPABASE) ---
 const CLOUD_CONFIG = {
     ENABLED: false,
     URL: '',
@@ -34,11 +27,6 @@ const defaultCatalog = [
     { id: "c-05", name: "Parka Expedición Polar", price: "115000", tag: "CAMPERA", meta: "TRIPLE AISLAMIENTO", image: "https://images.unsplash.com/photo-1539533113208-f6df8cc8b543?q=80&w=800", desc: "Diseño extendido con capucha de pelaje sintético interno para máxima protección invernal." }
 ];
 
-/* 
-   =========================================================
-   BOREALIS DATA PROVIDER (Infraestructure Layer)
-   =========================================================
-*/
 const BorealisDB = {
     CATALOG_KEY: 'borealis_catalog_v4',
     CART_KEY: 'borealis_cart_v5',
@@ -71,21 +59,14 @@ const BorealisDB = {
     }
 };
 
-/* 
-   =========================================================
-   GLOBAL APP STATE
-   =========================================================
-*/
 let catalog = [];
 let shoppingCart = {};
 let currentFilter = 'ALL', currentSearch = '';
 
 async function bootstrap() {
-    console.log("/// INICIANDO BOOTSTRAP BOREALIS...");
     try {
         catalog = await BorealisDB.init();
         shoppingCart = await BorealisDB.getCart();
-        console.log("/// DATOS RECUPERADOS:", catalog.length, "ITEMS.");
 
         renderNav();
         renderCartDrawer();
@@ -96,22 +77,19 @@ async function bootstrap() {
 
         checkProductPage();
         injectCloudStatus();
-        console.log("/// BOOTSTRAP FINALIZADO OK.");
     } catch (e) {
-        console.error("/// FALLO EN BOOTSTRAP:", e);
+        console.error("/// SE CAYÓ TODO:", e);
     }
 }
 
 function injectCloudStatus() {
     const s = document.createElement('div');
     s.style = "position: fixed; bottom: 10px; left: 10px; font-family: monospace; font-size: 10px; color: #555; z-index: 1000;";
-    s.innerHTML = CLOUD_CONFIG.ENABLED ? `<span style="color:#0f0">[ CLOUD_LINK: ACTIVE ]</span>` : `[ DATA_MODE: PERSISTENT_LOCAL ]`;
+    s.innerHTML = CLOUD_CONFIG.ENABLED ? `<span style="color:#0f0">[ CLOUD_SYNC: ACTIVO ]</span>` : `[ MODO: LABURO_LOCAL ]`;
     document.body.appendChild(s);
 }
 
-/* EVENT LISTENERS */
 function setupEventListeners() {
-    // Mobile menu
     const header = document.querySelector('.top-nav');
     if (header && !document.getElementById('mobile-hamburger')) {
         const btn = document.createElement('button');
@@ -122,13 +100,11 @@ function setupEventListeners() {
         header.insertBefore(btn, document.getElementById('main-nav'));
     }
 
-    // Search
     document.getElementById('search-input')?.addEventListener('input', (e) => {
         currentSearch = e.target.value;
         renderCatalog();
     });
 
-    // Filters
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.onclick = (e) => {
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -138,11 +114,9 @@ function setupEventListeners() {
         };
     });
 
-    // Close Cart
     const closeBtn = document.getElementById('close-cart');
     if (closeBtn) closeBtn.onclick = () => toggleCart(false);
 
-    // Login Form
     const loginForm = document.getElementById('login-form');
     if (loginForm) loginForm.onsubmit = (e) => {
         e.preventDefault();
@@ -151,20 +125,35 @@ function setupEventListeners() {
         const msg = document.getElementById('login-msg');
         if (u === 'admin' && p === 'lambda') {
             localStorage.setItem(BorealisDB.USER_KEY, 'admin');
-            msg.className = 'status-msg success'; msg.innerText = "ACCESO CONCEDIDO.";
-            showToast("Login exitoso.");
+            msg.className = 'status-msg success'; msg.innerText = "ACCESO CONCEDIDO COMPA.";
+            showToast("Entraste con toda.");
             setTimeout(() => window.location.href = 'admin.html', 800);
         } else {
-            msg.className = 'status-msg error'; msg.innerText = "CREDENCIALES INVÁLIDAS.";
+            msg.className = 'status-msg error'; msg.innerText = "TE MANDASTE CUALQUIERA.";
         }
     };
 
-    // Admin Upload
     const uploadForm = document.getElementById('upload-form');
     if (uploadForm) uploadForm.onsubmit = async (e) => {
         e.preventDefault();
         const msg = document.getElementById('upload-status');
-        msg.className = 'status-msg success'; msg.innerText = "PROCESANDO...";
+        msg.className = 'status-msg success'; msg.innerText = "PROCESANDO EL PAQUETE...";
+
+        let finalImage = document.getElementById('p-image').value.trim();
+        const fileInput = document.getElementById('p-file');
+        
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            if (file.size > 1.2 * 1024 * 1024) {
+                msg.className = 'status-msg error'; msg.innerText = "ARCHIVO DEMASIADO PESADO (MÁX 1.2MB).";
+                return;
+            }
+            finalImage = await new Promise(res => {
+                const reader = new FileReader();
+                reader.onload = (ev) => res(ev.target.result);
+                reader.readAsDataURL(file);
+            });
+        }
 
         const newProduct = {
             id: 'b-' + Date.now().toString().slice(-6),
@@ -172,31 +161,54 @@ function setupEventListeners() {
             price: document.getElementById('p-price').value,
             tag: document.getElementById('p-cat')?.value || "NUEVO",
             meta: "CARGA_MANUAL",
-            image: document.getElementById('p-image').value.trim(),
+            image: finalImage,
             desc: document.getElementById('p-desc').value.trim()
         };
 
         catalog.unshift(newProduct);
         await BorealisDB.saveCatalog(catalog);
-        showToast("Producto subido a la nube.");
-        document.getElementById('upload-form').reset();
+        showToast("Prenda subida con éxito.");
+        uploadForm.reset();
+        document.getElementById('image-preview').innerHTML = "SIN DATA VISUAL";
+        document.getElementById('image-preview').classList.add('empty-preview');
+        document.getElementById('p-image').disabled = false;
+        document.getElementById('p-image').required = true;
         renderAdminInventory();
         setTimeout(() => msg.classList.add('hidden'), 2000);
     };
 
-    // Admin Preview
+    document.getElementById('p-file')?.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        const p = document.getElementById('image-preview');
+        const urlInput = document.getElementById('p-image');
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                p.innerHTML = `<img src="${ev.target.result}" style="max-height:180px; width:100%; object-fit:cover;">`;
+                p.classList.remove('empty-preview');
+                urlInput.required = false;
+                urlInput.disabled = true;
+                urlInput.placeholder = "Imagen cargada desde archivo.";
+            };
+            reader.readAsDataURL(file);
+        } else {
+            urlInput.disabled = false;
+            urlInput.required = true;
+            urlInput.placeholder = "https://...";
+        }
+    });
+
     document.getElementById('p-image')?.addEventListener('input', (e) => {
         const p = document.getElementById('image-preview');
         if (e.target.value.startsWith('http')) {
             p.innerHTML = `<img src="${e.target.value}" style="max-height:180px; width:100%; object-fit:cover;">`;
             p.classList.remove('empty-preview');
         } else {
-            p.innerHTML = "SIN DATOS VISUALES"; p.classList.add('empty-preview');
+            p.innerHTML = "SIN DATA VISUAL"; p.classList.add('empty-preview');
         }
     });
 }
 
-/* UI ACTIONS */
 window.addToCart = async function (itemId, size = 'M', goDirectly = false) {
     const item = catalog.find(i => i.id == itemId);
     if (!item) return;
@@ -208,7 +220,7 @@ window.addToCart = async function (itemId, size = 'M', goDirectly = false) {
     await BorealisDB.saveCart(shoppingCart);
     renderNav();
     renderCartDrawer();
-    showToast(`"${item.name}" [${size}] añadido.`);
+    showToast(`"${item.name}" [Talle ${size}] al canasto.`);
     if (goDirectly) toggleCart(true);
 }
 
@@ -232,7 +244,6 @@ window.toggleCart = function (state = null) {
 
 window.logout = function () { localStorage.removeItem(BorealisDB.USER_KEY); window.location.href = 'index.html'; }
 
-/* RENDERERS */
 function renderNav() {
     const nav = document.getElementById('main-nav');
     if (!nav) return;
@@ -328,7 +339,6 @@ function checkProductPage() {
     }
 }
 
-/* ADMIN */
 window.renderAdminInventory = function () {
     const list = document.getElementById('admin-inventory-list');
     if (!list) return;
@@ -342,15 +352,15 @@ window.renderAdminInventory = function () {
     });
 }
 window.handleDelete = async function (id) {
-    if (confirm('¿Borrar permanentemente?')) {
+    if (confirm('¿Borrar permanentemente? Mirá que no vuelve más.')) {
         catalog = catalog.filter(i => i.id !== id);
         await BorealisDB.saveCatalog(catalog);
         renderAdminInventory();
-        showToast("Eliminado.");
+        showToast("Eliminado el petardo.");
     }
 }
 
-/* HELPERS */
+
 function formatMoney(n) { return "$" + parseInt(n).toLocaleString('es-AR'); }
 function showToast(m) {
     const c = document.getElementById('toast-container') || document.createElement('div');
@@ -360,5 +370,6 @@ function showToast(m) {
     c.appendChild(t);
     setTimeout(() => { t.classList.add('fade-out'); setTimeout(() => t.remove(), 500); }, 3000);
 }
+
 
 bootstrap();

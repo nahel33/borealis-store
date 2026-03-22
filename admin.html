@@ -12,7 +12,6 @@
             <span class="lambda">λ</span> BOREALIS_SYS
         </div>
         <nav id="main-nav">
-            <!-- Navigation will be injected dynamically by script.js -->
         </nav>
     </header>
 
@@ -54,6 +53,12 @@
                     <input type="url" id="p-image" placeholder="https://..." required>
                 </div>
 
+                <div class="form-group" style="border: 1px dashed #444; padding: 15px; background: #050505;">
+                    <label for="p-file" style="color: var(--cyan);">&gt; O SUBIR DESDE DISPOSITIVO:</label>
+                    <input type="file" id="p-file" accept="image/png, image/jpeg, image/webp" style="border:none; padding:10px 0;">
+                    <p style="font-size: 0.7rem; color: #666; margin-top: 5px;">* Límite recomendado: 1MB (JPG/PNG/WEBP)</p>
+                </div>
+
                 <div class="preview-box">
                     <span>[ VISTA PREVIA DEL ESQUEMA ]</span>
                     <div id="image-preview" class="empty-preview">
@@ -71,7 +76,6 @@
         <div class="terminal-body" style="margin-top: 0; padding-top: 0; border-top: 2px dashed #333;">
             <h3 style="color: var(--hl-orange); font-family: var(--terminal-font); margin: 30px 0 20px 0;">/// INVENTARIO_ACTIVO (BAJA/MODIFICACIÓN)</h3>
             <div id="admin-inventory-list">
-                <!-- Injected via JS -->
             </div>
         </div>
     </main>
