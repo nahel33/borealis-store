@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOREALIS | Acceso de Personal</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+
+<body class="admin-mode">
+    <header class="top-nav">
+        <div class="logo">
+            <span class="lambda">λ</span> BOREALIS_SYS
+        </div>
+        <nav id="main-nav">
+
+        </nav>
+    </header>
+
+    <main class="terminal-container" style="max-width: 450px; margin: 10vh auto 40px auto;">
+        <div class="terminal-header">
+            <span>BOREALIS SECURITY // AUTENTICACIÓN REQUERIDA</span>
+        </div>
+        <div class="terminal-body">
+            <form id="login-form" class="retro-form">
+                <div class="form-group" style="text-align: center; margin-bottom: 2rem;">
+                    <span class="lambda" style="font-size: 3rem;">λ</span>
+                    <p style="color: #666; font-size: 0.85rem; margin-top: 15px; font-family: var(--terminal-font);">
+                        SECTOR 7G - ACCESO RESTRINGIDO</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="l-user">&gt; ID_OPERARIO:</label>
+                    <input type="text" id="l-user" required autocomplete="off" placeholder="Identificación..."
+                        autofocus>
+                </div>
+
+                <div class="form-group">
+                    <label for="l-pass">&gt; CÓDIGO_DE_ACCESO (PIN):</label>
+                    <input type="password" id="l-pass" required placeholder="••••••••">
+                </div>
+
+                <button type="submit" class="submit-btn" style="margin-top: 1rem;">
+                    [ VERIFICAR_CREDENCIALES ]
+                </button>
+                <div id="login-msg" class="status-msg error hidden"></div>
+
+                <div
+                    style="text-align: center; margin-top: 25px; font-family: var(--terminal-font); font-size: 0.8rem; color: #555;">
+                    Pista Demo: Usuario: <strong>admin</strong> / Pass: <strong>lambda</strong>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        <p>Borealis Research Vessel - SEC.7 // El Acceso No Autorizado Será Sancionado</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

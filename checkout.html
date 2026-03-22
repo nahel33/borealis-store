@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOREALIS | Terminal de Cobro</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        .checkout-box { max-width: 600px; margin: 40px auto; background: #0a0a0a; border: 1px dashed var(--hl-orange); padding: 30px; font-family: var(--terminal-font); position: relative; }
+        .checkout-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--hl-orange); }
+        .summary-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed #222; color: #aaa; }
+    </style>
+</head>
+<body class="admin-mode">
+    <header class="top-nav">
+        <div class="logo" style="cursor: pointer;" onclick="window.location.href='index.html'">
+            <span class="lambda">λ</span> BOREALIS
+        </div>
+    </header>
+
+    <main class="checkout-box" id="checkout-view">
+        <h2 style="color:var(--hl-orange); margin-bottom: 20px;">/// INICIO DE TRANSMISIÓN DE PAGO</h2>
+        <div id="checkout-items" style="margin-bottom: 20px; background: #000; padding: 15px; border: 1px solid #222;"></div>
+        <div style="text-align: right; font-size: 1.5rem; color: #fff; margin-bottom: 30px;" id="checkout-total"></div>
+        
+        <form id="payment-form" class="retro-form">
+            <h3 style="color:#666; margin-bottom: 15px;">&gt; PROTOCOLO_DE_ENTREGA</h3>
+            <div class="form-group">
+                <label>&gt; ID_OPERARIO (Nombre Completo):</label>
+                <input type="text" required placeholder="Ej: Gordon Freeman">
+            </div>
+            <div class="form-group">
+                <label>&gt; COORDENADAS DE ENVÍO:</label>
+                <input type="text" required placeholder="Dirección, Piso, Sector...">
+            </div>
+            
+            <h3 style="color:#666; margin: 25px 0 15px 0;">&gt; ENLACE_BANCARIO</h3>
+            <div class="form-group" style="display:flex; gap: 15px; flex-wrap: wrap;">
+                <div style="flex:2; min-width: 200px;">
+                    <label>&gt; NÚMERO DE CREDENCIAL:</label>
+                    <input type="text" required placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="19">
+                </div>
+                <div style="flex:1; min-width: 100px;">
+                    <label>&gt; PIN (CVV):</label>
+                    <input type="password" required placeholder="XXX" maxlength="4">
+                </div>
+            </div>
+            <button type="submit" class="submit-btn" style="width: 100%; margin-top:20px; font-size:1.1rem; padding: 15px;">[ AUTORIZAR_TRANSFERENCIA ]</button>
+        </form>
+    </main>
+
+    <script>
+        let finalCart = {};
+        try { finalCart = JSON.parse(localStorage.getItem('borealis_cart_v4')); } catch(e){}
+        const itemsDiv = document.getElementById('checkout-items');
+        let total = 0;
+
+        if(!finalCart || Object.keys(finalCart).length === 0) {
+            itemsDiv.innerHTML = "<p style='color:red;'>SIN CARGA ACTIVA. ABORTANDO.</p>";
+            document.getElementById('payment-form').style.display = 'none';
+        } else {
+            Object.values(finalCart).forEach(el => {
+                total += el.price * el.qty;
+                itemsDiv.innerHTML += `
+                    <div class="summary-item">
+                        <span><strong style="color:#fff;">${el.qty}x</strong> ${el.name} <span style="color:var(--hl-orange)">[${el.size}]</span></span>
+                        <span>$${(el.price * el.qty).toLocaleString('es-AR')}</span>
+                    </div>`;
+            });
+            document.getElementById('checkout-total').innerText = 'TOTAL: $' + total.toLocaleString('es-AR');
+        }
+
+        document.getElementById('payment-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const view = document.getElementById('checkout-view');
+            view.innerHTML = `
+                <div style="text-align:center; padding: 40px 0;">
+                    <h2 style="color:#0f0; margin-bottom: 20px; font-size:2rem;">/// TRANSFERENCIA EXITOSA</h2>
+                    <div style="color:#888; font-size:1.1rem; line-height: 1.8;">
+                        <p>Los fondos han sido deducidos correctamente.</p>
+                        <p style="color:#fff;">Orden <span style="color:var(--hl-orange)">#SYS-${Math.floor(Math.random()*100000)}</span> confirmada.</p>
+                        <p style="margin-top:20px;">El equipo de logística del Sector 7 procederá con el empaquetado y despacho a tus coordenadas.</p>
+                        
+                        <div style="margin-top: 40px;">
+                            <a href="index.html" class="submit-btn" style="text-decoration:none; padding:15px 30px; display:inline-block;">[ RETORNAR A LA BASE ]</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            localStorage.removeItem('borealis_cart_v4'); // Vaciar carro
+        });
+    </script>
+</body>
+</html>

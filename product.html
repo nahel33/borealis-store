@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOREALIS | Datapad de Producto</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="top-nav">
+        <div class="logo" style="cursor: pointer;" onclick="window.location.href='index.html'">
+            <span class="lambda">λ</span> BOREALIS
+        </div>
+        <nav id="main-nav">
+            <!-- Renderizado por script.js -->
+        </nav>
+    </header>
+
+    <!-- Content injected here by script.js using URL parameters -->
+    <main class="product-detail-container" id="pd-container">
+        <div style="text-align: center; width: 100%; color: #666; font-family: monospace;">
+            <span class="pulse"></span> CARGANDO ESQUEMAS...
+        </div>
+    </main>
+
+    <!-- Shopping Cart Sidebar -->
+    <aside id="cart-drawer" class="cart-drawer hidden">
+        <div class="cart-header">
+            <h3>/// CARRITO_DE_COMPRAS</h3>
+            <button id="close-cart" class="close-btn">[X]</button>
+        </div>
+        <div class="cart-body" id="cart-items">
+            <!-- Items injected by JS -->
+        </div>
+        <div class="cart-footer">
+            <div class="total-row">
+                <span>TOTAL A PAGAR:</span>
+                <span id="cart-total" class="cart-total-price">$0</span>
+            </div>
+            <button class="submit-btn" id="checkout-btn" onclick="checkout()">[ INICIAR_CHECKOUT ]</button>
+        </div>
+    </aside>
+
+    <footer style="margin-top: 100px;">
+        <p>Borealis Research Vessel - SEC.7 // El Acceso No Autorizado Será Sancionado</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

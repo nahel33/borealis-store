@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOREALIS | Ropa de Hombre</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="top-nav">
+        <div class="logo" style="cursor: pointer;" onclick="window.location.href='index.html'">
+            <span class="lambda">λ</span> BOREALIS
+        </div>
+        <nav id="main-nav">
+            <!-- Renderizado por script.js -->
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h1>INDUMENTARIA URBANA PARA HOMBRE</h1>
+                <p>Colección exclusiva de indumentaria masculina. Remeras, pantalones, buzos y camperas con diseño premium.</p>
+                <div class="status-indicator">
+                    <span class="pulse"></span> SISTEMA PRINCIPAL EN LÍNEA
+                </div>
+            </div>
+        </section>
+
+        <section class="catalog">
+            <div class="toolbar" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem; flex-wrap: wrap; gap: 15px;">
+                <div class="filters" id="category-filters">
+                    <button class="filter-btn active" data-filter="ALL">TODO</button>
+                    <button class="filter-btn" data-filter="REMERA">REMERAS</button>
+                    <button class="filter-btn" data-filter="PANTALÓN">PANTALONES</button>
+                    <button class="filter-btn" data-filter="BUZO">BUZOS</button>
+                    <button class="filter-btn" data-filter="CAMPERA">CAMPERAS</button>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder=">_ BUSCAR_PRENDA..." class="retro-input">
+                </div>
+            </div>
+
+            <div class="grid" id="product-grid">
+                <!-- Products will be injected by script.js -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Shopping Cart Sidebar -->
+    <aside id="cart-drawer" class="cart-drawer hidden">
+        <div class="cart-header">
+            <h3>/// CARRITO_DE_COMPRAS</h3>
+            <button id="close-cart" class="close-btn">[X]</button>
+        </div>
+        <div class="cart-body" id="cart-items">
+            <!-- Items injected by JS -->
+        </div>
+        <div class="cart-footer">
+            <div class="total-row">
+                <span>TOTAL A PAGAR:</span>
+                <span id="cart-total" class="cart-total-price">$0</span>
+            </div>
+            <button class="submit-btn" id="checkout-btn" onclick="checkout()">[ INICIAR_CHECKOUT ]</button>
+        </div>
+    </aside>
+
+    <footer>
+        <p>Borealis Research Vessel - SEC.7 // El Acceso No Autorizado Será Sancionado</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
