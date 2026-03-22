@@ -62,6 +62,7 @@ const BorealisDB = {
 let catalog = [];
 let shoppingCart = {};
 let currentFilter = 'ALL', currentSearch = '';
+let editingId = null;
 
 async function bootstrap() {
     try {
@@ -137,6 +138,7 @@ function setupEventListeners() {
     if (uploadForm) uploadForm.onsubmit = async (e) => {
         e.preventDefault();
         const msg = document.getElementById('upload-status');
+        const submitBtn = document.getElementById('btn-submit');
         msg.className = 'status-msg success'; msg.innerText = "PROCESANDO EL PAQUETE...";
 
         let finalImage = document.getElementById('p-image').value.trim();
@@ -155,19 +157,38 @@ function setupEventListeners() {
             });
         }
 
-        const newProduct = {
-            id: 'b-' + Date.now().toString().slice(-6),
-            name: document.getElementById('p-name').value.trim(),
-            price: document.getElementById('p-price').value,
-            tag: document.getElementById('p-cat')?.value || "NUEVO",
-            meta: "CARGA_MANUAL",
-            image: finalImage,
-            desc: document.getElementById('p-desc').value.trim()
-        };
+        if (editingId) {
+            const index = catalog.findIndex(i => i.id === editingId);
+            if (index !== -1) {
+                if (!finalImage && catalog[index].image) finalImage = catalog[index].image;
+                catalog[index] = {
+                    ...catalog[index],
+                    name: document.getElementById('p-name').value.trim(),
+                    price: document.getElementById('p-price').value,
+                    tag: document.getElementById('p-cat')?.value || "NUEVO",
+                    desc: document.getElementById('p-desc').value.trim(),
+                    image: finalImage
+                };
+                showToast("Cambios guardados con éxito.");
+            }
+            editingId = null;
+            submitBtn.innerText = "[ EJECUTAR_ALTA ]";
+            document.getElementById('btn-cancel-edit')?.classList.add('hidden');
+        } else {
+            const newProduct = {
+                id: 'b-' + Date.now().toString().slice(-6),
+                name: document.getElementById('p-name').value.trim(),
+                price: document.getElementById('p-price').value,
+                tag: document.getElementById('p-cat')?.value || "NUEVO",
+                meta: "CARGA_MANUAL",
+                image: finalImage,
+                desc: document.getElementById('p-desc').value.trim()
+            };
+            catalog.unshift(newProduct);
+            showToast("Prenda subida con éxito.");
+        }
 
-        catalog.unshift(newProduct);
         await BorealisDB.saveCatalog(catalog);
-        showToast("Prenda subida con éxito.");
         uploadForm.reset();
         document.getElementById('image-preview').innerHTML = "SIN DATA VISUAL";
         document.getElementById('image-preview').classList.add('empty-preview');
@@ -347,9 +368,41 @@ window.renderAdminInventory = function () {
         list.innerHTML += `
             <div style="display:flex; justify-content:space-between; align-items:center; background:#111; padding:15px; border:1px solid #333; margin-bottom:10px;">
                 <span>${i.name} (${formatMoney(i.price)})</span>
-                <button class="btn-del" onclick="handleDelete('${i.id}')">[ X ]</button>
+                <div>
+                    <button class="btn-del" style="background:var(--cyan); color:#000; margin-right:10px;" onclick="handleEdit('${i.id}')">[ ✎ ]</button>
+                    <button class="btn-del" onclick="handleDelete('${i.id}')">[ X ]</button>
+                </div>
             </div>`;
     });
+}
+
+window.handleEdit = function (id) {
+    const item = catalog.find(i => i.id === id);
+    if (!item) return;
+    
+    editingId = id;
+    document.getElementById('p-name').value = item.name;
+    document.getElementById('p-price').value = item.price;
+    document.getElementById('p-cat').value = item.tag;
+    document.getElementById('p-desc').value = item.desc;
+    document.getElementById('p-image').value = item.image.startsWith('data:') ? "" : item.image;
+    
+    const preview = document.getElementById('image-preview');
+    preview.innerHTML = `<img src="${item.image}" style="max-height:180px; width:100%; object-fit:cover;">`;
+    preview.classList.remove('empty-preview');
+    
+    document.getElementById('btn-submit').innerText = "[ GUARDAR_CAMBIOS ]";
+    document.getElementById('btn-cancel-edit').classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+window.cancelEdit = function () {
+    editingId = null;
+    document.getElementById('upload-form').reset();
+    document.getElementById('image-preview').innerHTML = "SIN DATA VISUAL";
+    document.getElementById('image-preview').classList.add('empty-preview');
+    document.getElementById('btn-submit').innerText = "[ EJECUTAR_ALTA ]";
+    document.getElementById('btn-cancel-edit').classList.add('hidden');
 }
 window.handleDelete = async function (id) {
     if (confirm('¿Borrar permanentemente? Mirá que no vuelve más.')) {
