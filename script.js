@@ -139,10 +139,12 @@ function setupEventListeners() {
     });
 
     // Close Cart
-    document.getElementById('close-cart')?.onclick = () => toggleCart(false);
+    const closeBtn = document.getElementById('close-cart');
+    if (closeBtn) closeBtn.onclick = () => toggleCart(false);
 
     // Login Form
-    document.getElementById('login-form')?.onsubmit = (e) => {
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) loginForm.onsubmit = (e) => {
         e.preventDefault();
         const u = document.getElementById('l-user').value.toLowerCase().trim();
         const p = document.getElementById('l-pass').value;
@@ -158,7 +160,8 @@ function setupEventListeners() {
     };
 
     // Admin Upload
-    document.getElementById('upload-form')?.onsubmit = async (e) => {
+    const uploadForm = document.getElementById('upload-form');
+    if (uploadForm) uploadForm.onsubmit = async (e) => {
         e.preventDefault();
         const msg = document.getElementById('upload-status');
         msg.className = 'status-msg success'; msg.innerText = "PROCESANDO...";
