@@ -6,9 +6,9 @@
 
 // --- CONFIGURACIÓN CLOUD (SUPABASE) ---
 const CLOUD_CONFIG = {
-    ENABLED: false, 
-    URL: 'https://TU_PROYECTO.supabase.co',
-    KEY: 'TU_ANON_KEY_AQUI'
+    ENABLED: false,
+    URL: '',
+    KEY: ''
 };
 
 const defaultCatalog = [
@@ -44,28 +44,28 @@ const BorealisDB = {
     CART_KEY: 'borealis_cart_v5',
     USER_KEY: 'borealis_user',
 
-    init: async function() {
+    init: async function () {
         if (!localStorage.getItem(this.CATALOG_KEY)) {
             localStorage.setItem(this.CATALOG_KEY, JSON.stringify(defaultCatalog));
         }
         return JSON.parse(localStorage.getItem(this.CATALOG_KEY));
     },
 
-    getCatalog: async function() {
+    getCatalog: async function () {
         return JSON.parse(localStorage.getItem(this.CATALOG_KEY));
     },
 
-    saveCatalog: async function(catalog) {
+    saveCatalog: async function (catalog) {
         localStorage.setItem(this.CATALOG_KEY, JSON.stringify(catalog));
         return true;
     },
 
-    getCart: async function() {
+    getCart: async function () {
         const c = localStorage.getItem(this.CART_KEY);
         return c ? JSON.parse(c) : {};
     },
 
-    saveCart: async function(cart) {
+    saveCart: async function (cart) {
         localStorage.setItem(this.CART_KEY, JSON.stringify(cart));
         return true;
     }
@@ -81,18 +81,25 @@ let shoppingCart = {};
 let currentFilter = 'ALL', currentSearch = '';
 
 async function bootstrap() {
-    catalog = await BorealisDB.init();
-    shoppingCart = await BorealisDB.getCart();
-    
-    renderNav();
-    renderCartDrawer();
-    setupEventListeners();
-    
-    if (document.getElementById('product-grid')) renderCatalog();
-    if (document.getElementById('admin-inventory-list')) renderAdminInventory();
-    
-    checkProductPage();
-    injectCloudStatus();
+    console.log("/// INICIANDO BOOTSTRAP BOREALIS...");
+    try {
+        catalog = await BorealisDB.init();
+        shoppingCart = await BorealisDB.getCart();
+        console.log("/// DATOS RECUPERADOS:", catalog.length, "ITEMS.");
+
+        renderNav();
+        renderCartDrawer();
+        setupEventListeners();
+
+        if (document.getElementById('product-grid')) renderCatalog();
+        if (document.getElementById('admin-inventory-list')) renderAdminInventory();
+
+        checkProductPage();
+        injectCloudStatus();
+        console.log("/// BOOTSTRAP FINALIZADO OK.");
+    } catch (e) {
+        console.error("/// FALLO EN BOOTSTRAP:", e);
+    }
 }
 
 function injectCloudStatus() {
@@ -155,7 +162,7 @@ function setupEventListeners() {
         e.preventDefault();
         const msg = document.getElementById('upload-status');
         msg.className = 'status-msg success'; msg.innerText = "PROCESANDO...";
-        
+
         const newProduct = {
             id: 'b-' + Date.now().toString().slice(-6),
             name: document.getElementById('p-name').value.trim(),
@@ -165,7 +172,7 @@ function setupEventListeners() {
             image: document.getElementById('p-image').value.trim(),
             desc: document.getElementById('p-desc').value.trim()
         };
-        
+
         catalog.unshift(newProduct);
         await BorealisDB.saveCatalog(catalog);
         showToast("Producto subido a la nube.");
@@ -187,40 +194,40 @@ function setupEventListeners() {
 }
 
 /* UI ACTIONS */
-window.addToCart = async function(itemId, size = 'M', goDirectly = false) {
+window.addToCart = async function (itemId, size = 'M', goDirectly = false) {
     const item = catalog.find(i => i.id == itemId);
-    if(!item) return;
+    if (!item) return;
 
     const key = `${itemId}_${size}`;
-    if(shoppingCart[key]) shoppingCart[key].qty++;
+    if (shoppingCart[key]) shoppingCart[key].qty++;
     else shoppingCart[key] = { ...item, qty: 1, size: size };
 
     await BorealisDB.saveCart(shoppingCart);
     renderNav();
     renderCartDrawer();
     showToast(`"${item.name}" [${size}] añadido.`);
-    if(goDirectly) toggleCart(true);
+    if (goDirectly) toggleCart(true);
 }
 
-window.changeQty = async function(key, delta) {
-    if(shoppingCart[key]) {
+window.changeQty = async function (key, delta) {
+    if (shoppingCart[key]) {
         shoppingCart[key].qty += delta;
-        if(shoppingCart[key].qty <= 0) delete shoppingCart[key];
+        if (shoppingCart[key].qty <= 0) delete shoppingCart[key];
         await BorealisDB.saveCart(shoppingCart);
         renderNav();
         renderCartDrawer();
     }
 }
 
-window.toggleCart = function(state = null) {
+window.toggleCart = function (state = null) {
     const d = document.getElementById('cart-drawer');
-    if(!d) return;
-    if(state === true) d.classList.remove('hidden');
-    else if(state === false) d.classList.add('hidden');
+    if (!d) return;
+    if (state === true) d.classList.remove('hidden');
+    else if (state === false) d.classList.add('hidden');
     else d.classList.toggle('hidden');
 }
 
-window.logout = function() { localStorage.removeItem(BorealisDB.USER_KEY); window.location.href = 'index.html'; }
+window.logout = function () { localStorage.removeItem(BorealisDB.USER_KEY); window.location.href = 'index.html'; }
 
 /* RENDERERS */
 function renderNav() {
@@ -228,8 +235,8 @@ function renderNav() {
     if (!nav) return;
     const user = localStorage.getItem(BorealisDB.USER_KEY);
     const count = Object.values(shoppingCart).reduce((a, b) => a + b.qty, 0);
-    const isIndex = window.location.pathname.includes('index.html') || window.location.pathname === '/';
-    
+    const isIndex = window.location.pathname.includes('index.html') || window.location.pathname.endsWith('/');
+
     let h = `<a href="index.html" class="${isIndex ? 'active' : ''}">CATÁLOGO</a>`;
     if (user === 'admin') {
         h += `<a href="admin.html" class="${window.location.pathname.includes('admin.html') ? 'active' : ''}">★ ADMIN</a>`;
@@ -237,14 +244,14 @@ function renderNav() {
     } else {
         h += `<a href="login.html" class="${window.location.pathname.includes('login.html') ? 'active' : ''}">ACCESO</a>`;
     }
-    h += `<a href="#" onclick="toggleCart()" style="color:var(--hl-orange);">🛒 CARRO [${count}]</a>`;
+    h += `<a href="#" onclick="toggleCart()" style="color:var(--hl-orange); border: 1px dashed var(--hl-orange); padding: 5px 10px;">🛒 CARRO [${count}]</a>`;
     nav.innerHTML = h;
 }
 
 function renderCartDrawer() {
     const list = document.getElementById('cart-items');
     const totalNode = document.getElementById('cart-total');
-    if(!list || !totalNode) return;
+    if (!list || !totalNode) return;
     list.innerHTML = '';
     let tot = 0;
     Object.keys(shoppingCart).forEach(k => {
@@ -267,9 +274,9 @@ function renderCartDrawer() {
     totalNode.innerText = formatMoney(tot);
 }
 
-window.renderCatalog = function() {
+window.renderCatalog = function () {
     const grid = document.getElementById('product-grid');
-    if(!grid) return;
+    if (!grid) return;
     grid.innerHTML = '';
     const filtered = catalog.filter(i => {
         const matF = currentFilter === 'ALL' || i.tag === currentFilter;
@@ -294,14 +301,14 @@ function checkProductPage() {
     if (!window.location.pathname.endsWith('product.html')) return;
     const pid = new URLSearchParams(window.location.search).get('id');
     const container = document.getElementById('pd-container');
-    if(!container || !pid) return;
+    if (!container || !pid) return;
     const item = catalog.find(i => i.id == pid);
-    if(item) {
+    if (item) {
         window.currentSelectedSize = 'M';
         window.selectSize = (s) => {
             window.currentSelectedSize = s;
             document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('size-'+s).classList.add('active');
+            document.getElementById('size-' + s).classList.add('active');
         };
         container.innerHTML = `
             <img src="${item.image}" class="pd-image">
@@ -311,7 +318,7 @@ function checkProductPage() {
                 <div class="pd-price">${formatMoney(item.price)}</div>
                 <p class="pd-desc">${item.desc}</p>
                 <div class="size-selector">
-                    ${['S','M','L','XL'].map(s => `<button id="size-${s}" class="size-btn ${s==='M'?'active':''}" onclick="selectSize('${s}')">${s}</button>`).join('')}
+                    ${['S', 'M', 'L', 'XL'].map(s => `<button id="size-${s}" class="size-btn ${s === 'M' ? 'active' : ''}" onclick="selectSize('${s}')">${s}</button>`).join('')}
                 </div>
                 <button class="submit-btn" style="background:var(--hl-orange); color:#000; border:none;" onclick="addToCart('${item.id}', window.currentSelectedSize, true)">[ AGREGAR AL CARRITO ]</button>
             </div>`;
@@ -319,9 +326,9 @@ function checkProductPage() {
 }
 
 /* ADMIN */
-window.renderAdminInventory = function() {
+window.renderAdminInventory = function () {
     const list = document.getElementById('admin-inventory-list');
-    if(!list) return;
+    if (!list) return;
     list.innerHTML = '';
     catalog.forEach(i => {
         list.innerHTML += `
@@ -331,8 +338,8 @@ window.renderAdminInventory = function() {
             </div>`;
     });
 }
-window.handleDelete = async function(id) {
-    if(confirm('¿Borrar permanentemente?')) {
+window.handleDelete = async function (id) {
+    if (confirm('¿Borrar permanentemente?')) {
         catalog = catalog.filter(i => i.id !== id);
         await BorealisDB.saveCatalog(catalog);
         renderAdminInventory();
